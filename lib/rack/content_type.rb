@@ -19,10 +19,11 @@ module Rack
 
     def call(env)
       status, headers, body = @app.call(env)
-      headers = Utils::HeaderHash.new(headers)
 
       unless STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i)
-        headers[CONTENT_TYPE] ||= @content_type
+        unless Utils.indifferent(headers, CONTENT_TYPE)
+          headers[CONTENT_TYPE] = @content_type
+        end
       end
 
       [status, headers, body]

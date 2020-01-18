@@ -574,11 +574,6 @@ module Rack
     ## It is also possible to hijack a response after the status and headers
     ## have been sent.
     def check_hijack_response(headers, env)
-
-      # this check uses headers like a hash, but the spec only requires
-      # headers respond to #each
-      headers = Rack::Utils::HeaderHash.new(headers)
-
       ## In order to do this, an application may set the special header
       ## <tt>rack.hijack</tt> to an object that responds to <tt>call</tt>
       ## accepting an argument that conforms to the <tt>rack.hijack_io</tt>
@@ -596,11 +591,11 @@ module Rack
       ## Servers must ignore the <tt>body</tt> part of the response tuple when
       ## the <tt>rack.hijack</tt> response API is in use.
 
-      if env[RACK_IS_HIJACK] && headers[RACK_HIJACK]
+      if env[RACK_IS_HIJACK] && (rh = Utils.indifferent(headers, RACK_HIJACK))
         assert('rack.hijack header must respond to #call') {
-          headers[RACK_HIJACK].respond_to? :call
+          rh.respond_to? :call
         }
-        original_hijack = headers[RACK_HIJACK]
+        original_hijack = rh
         headers[RACK_HIJACK] = proc do |io|
           original_hijack.call HijackWrapper.new(io)
         end
@@ -609,7 +604,7 @@ module Rack
         ## The special response header <tt>rack.hijack</tt> must only be set
         ## if the request env has <tt>rack.hijack?</tt> <tt>true</tt>.
         assert('rack.hijack header must not be present if server does not support hijacking') {
-          headers[RACK_HIJACK].nil?
+          Utils.indifferent(headers, RACK_HIJACK).nil?
         }
       end
     end

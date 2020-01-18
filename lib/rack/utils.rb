@@ -416,6 +416,31 @@ module Rack
       end
     end
 
+    def indifferent(hash, key)
+      hash.fetch(key) do
+        hash.fetch(key.downcase) do
+          hash[key.upcase]
+        end
+      end
+    end
+    module_function :indifferent
+
+    def indifferent_delete(hash, key)
+      hash.delete(key) do
+        hash.delete(key.downcase) do
+          hash.delete(key.upcase)
+        end
+      end
+    end
+    module_function :indifferent_delete
+
+    def indifferent_key?(hash, key)
+      hash.has_key?(key) ||
+        hash.has_key?(key.downcase) ||
+        hash.has_key?(key.upcase)
+    end
+    module_function :indifferent_key?
+
     # A case-insensitive Hash that preserves the original case of a
     # header when set.
     #

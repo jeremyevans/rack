@@ -71,17 +71,16 @@ module Rack
 
     def call(env)
       status, headers, body = @app.call(env)
-      headers = HeaderHash.new(headers)
 
       if ! chunkable_version?(env[SERVER_PROTOCOL]) ||
          STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i) ||
-         headers[CONTENT_LENGTH] ||
-         headers[TRANSFER_ENCODING]
+         Utils.indifferent(headers, CONTENT_LENGTH) ||
+         Utils.indifferent(headers, TRANSFER_ENCODING)
         [status, headers, body]
       else
-        headers.delete(CONTENT_LENGTH)
+        Utils.indifferent_delete(headers, CONTENT_LENGTH)
         headers[TRANSFER_ENCODING] = 'chunked'
-        if headers['Trailer']
+        if Utils.indifferent(headers, 'Trailer')
           [status, headers, TrailerBody.new(body)]
         else
           [status, headers, Body.new(body)]

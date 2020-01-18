@@ -33,7 +33,6 @@ module Rack
     def call(env)
       began_at = Utils.clock_time
       status, header, body = @app.call(env)
-      header = Utils::HeaderHash.new(header)
       body = BodyProxy.new(body) { log(env, status, header, began_at) }
       [status, header, body]
     end
@@ -66,7 +65,7 @@ module Rack
     end
 
     def extract_content_length(headers)
-      value = headers[CONTENT_LENGTH]
+      value = Utils.indifferent(headers, CONTENT_LENGTH)
       !value || value.to_s == '0' ? '-' : value
     end
   end

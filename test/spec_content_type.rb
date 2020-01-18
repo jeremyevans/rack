@@ -34,10 +34,10 @@ describe Rack::ContentType do
   end
 
   it "detect Content-Type case insensitive" do
-    app = lambda { |env| [200, { 'CONTENT-Type' => 'foo/bar' }, "Hello, World!"] }
+    app = lambda { |env| [200, { 'CONTENT-TYPE' => 'foo/bar' }, "Hello, World!"] }
     headers = content_type(app).call(request)[1]
     headers.to_a.select { |k, v| k.downcase == "content-type" }.
-      must_equal [["CONTENT-Type", "foo/bar"]]
+      must_equal [["CONTENT-TYPE", "foo/bar"]]
   end
 
   [100, 204, 304].each do |code|

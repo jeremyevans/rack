@@ -43,7 +43,6 @@ module Rack
 
     def call(env)
       status, headers, body = @app.call(env)
-      headers = Utils::HeaderHash.new(headers)
 
       unless should_deflate?(env, status, headers, body)
         return [status, headers, body]
@@ -55,7 +54,7 @@ module Rack
                                             request.accept_encoding)
 
       # Set the Vary HTTP header.
-      vary = headers["Vary"].to_s.split(",").map(&:strip)
+      vary = Utils.indifferent(headers, "Vary").to_s.split(",").map(&:strip)
       unless vary.include?("*") || vary.include?("Accept-Encoding")
         headers["Vary"] = vary.push("Accept-Encoding").join(",")
       end
@@ -63,8 +62,8 @@ module Rack
       case encoding
       when "gzip"
         headers['Content-Encoding'] = "gzip"
-        headers.delete('Content-Length')
-        mtime = headers["Last-Modified"]
+        Utils.indifferent_delete(headers, 'Content-Length')
+        mtime = Utils.indifferent(headers, "Last-Modified")
         mtime = Time.httpdate(mtime).to_i if mtime
         [status, headers, GzipStream.new(body, mtime, @sync)]
       when "identity"
@@ -113,20 +112,20 @@ module Rack
       # Skip compressing empty entity body responses and responses with
       # no-transform set.
       if Utils::STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i) ||
-          /\bno-transform\b/.match?(headers['Cache-Control'].to_s) ||
-         (headers['Content-Encoding'] && headers['Content-Encoding'] !~ /\bidentity\b/)
+          /\bno-transform\b/.match?(Utils.indifferent(headers, 'Cache-Control').to_s) ||
+         ((enc = Utils.indifferent(headers, 'Content-Encoding')) && enc !~ /\bidentity\b/)
         return false
       end
 
       # Skip if @compressible_types are given and does not include request's content type
-      return false if @compressible_types && !(headers.has_key?('Content-Type') && @compressible_types.include?(headers['Content-Type'][/[^;]*/]))
+      return false if @compressible_types && !((ct = Utils.indifferent(headers, 'Content-Type')) && @compressible_types.include?(ct[/[^;]*/]))
 
       # Skip if @condition lambda is given and evaluates to false
       return false if @condition && !@condition.call(env, status, headers, body)
 
       # No point in compressing empty body, also handles usage with
       # Rack::Sendfile.
-      return false if headers[CONTENT_LENGTH] == '0'
+      return false if Utils.indifferent(headers, CONTENT_LENGTH) == '0'
 
       true
     end

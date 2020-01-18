@@ -25,11 +25,10 @@ module Rack
       case env[REQUEST_METHOD]
       when "GET", "HEAD"
         status, headers, body = @app.call(env)
-        headers = Utils::HeaderHash.new(headers)
         if status == 200 && fresh?(env, headers)
           status = 304
-          headers.delete(CONTENT_TYPE)
-          headers.delete(CONTENT_LENGTH)
+          Utils.indifferent_delete(headers, CONTENT_TYPE)
+          Utils.indifferent_delete(headers, CONTENT_LENGTH)
           original_body = body
           body = Rack::BodyProxy.new([]) do
             original_body.close if original_body.respond_to?(:close)
@@ -56,11 +55,11 @@ module Rack
     end
 
     def etag_matches?(none_match, headers)
-      etag = headers['ETag'] and etag == none_match
+      etag = Utils.indifferent(headers, 'ETag') and etag == none_match
     end
 
     def modified_since?(modified_since, headers)
-      last_modified = to_rfc2822(headers['Last-Modified']) and
+      last_modified = to_rfc2822(Utils.indifferent(headers, 'Last-Modified')) and
         modified_since and
         modified_since >= last_modified
     end
