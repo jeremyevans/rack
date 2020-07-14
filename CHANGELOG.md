@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [3.0.0] - Unreleased
 
+### Added
+
+- Rack::Session::Pool now accepts `:allow_fallback` option to disable fallback to public id. ([#1431](https://github.com/rack/rack/issues/1431), [@jeremyevans](https://github.com/jeremyevans))
+
 ### Changed
 
 - BREAKING CHANGE: Require `status` to be an Integer. ([#1662](https://github.com/rack/rack/pull/1662), [@olleolleolle](https://github.com/olleolleolle))
