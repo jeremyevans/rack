@@ -266,8 +266,10 @@ module Rack
         if @body.is_a?(Array)
           # The user supplied body was an array:
           @body = @body.compact
-          @body.each do |part|
-            @length += part.to_s.bytesize
+          @body = @body.map do |part|
+            part = part.to_s.dup
+            @length += part.bytesize
+            part
           end
         else
           # Turn the user supplied body into a buffered array:
@@ -275,7 +277,7 @@ module Rack
           @body = Array.new
 
           body.each do |part|
-            @writer.call(part.to_s)
+            @writer.call(part.to_s.dup)
           end
 
           body.close if body.respond_to?(:close)
