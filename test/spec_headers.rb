@@ -323,6 +323,10 @@ class RackHeadersTest < Minitest::Spec
   def test_to_hash
     assert_equal Hash[], @h.to_hash
     assert_equal Hash['3','4','ab','1','cd','2'], @fh.to_hash
+    refute_same @h, @h.to_hash
+    refute_same @fh, @fh.to_hash
+    assert_kind_of Rack::Headers, @h.to_hash
+    assert_kind_of Rack::Headers, @fh.to_hash
   end
   
   def test_values

@@ -99,6 +99,10 @@ module Rack
       dup.transform_values!(&block)
     end
 
+    # For compatibility with code previously working
+    # with Rack::Utils::HeadersHash
+    alias to_hash dup
+
     def update(hash, &block)
       hash.each do |key, value| 
         self[key] = if block_given? && include?(key)
